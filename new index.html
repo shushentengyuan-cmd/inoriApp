@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>修了式準備 40日トラッカー</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 pb-24">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+    <div>
+      <h1 class="text-base font-bold">40日トラッカー</h1>
+      <p class="text-[10px] opacity-80">修了式準備 2人用</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs bg-indigo-700 px-2 py-1 rounded">ユーザー:</span>
+      <select id="userSelect" class="bg-white text-slate-800 text-sm font-bold rounded px-2 py-1 shadow" onchange="changeUser(this.value)">
+        <option value="たつみ">たつみ</option>
+        <option value="たくみ">たくみ</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4">
+
+    <!-- タブ1: ダッシュボード -->
+    <section id="sec-dash" class="space-y-4">
+      <h2 class="text-sm font-bold text-slate-500">📊 個人ダッシュボード (<span class="user-disp">たつみ</span>)</h2>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <p class="text-xs text-slate-400 font-bold">祈りの平均深さ</p>
+          <p id="dash-pray-avg" class="text-3xl font-extrabold text-indigo-600 mt-1">0.0 <span class="text-xs font-normal text-slate-500">点</span></p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <p class="text-xs text-slate-400 font-bold">祈った日数</p>
+          <p id="dash-pray-days" class="text-3xl font-extrabold text-indigo-600 mt-1">0 <span class="text-xs font-normal text-slate-500">日</span></p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <p class="text-xs text-slate-400 font-bold">聖書 読破章数</p>
+          <p id="dash-bible-total" class="text-3xl font-extrabold text-emerald-600 mt-1">0 <span class="text-xs font-normal text-slate-500">章</span></p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
+          <p class="text-xs text-slate-400 font-bold">講義 発表完了</p>
+          <p id="dash-lecture-done" class="text-3xl font-extrabold text-amber-600 mt-1">0 <span class="text-xs font-normal text-slate-500">本</span></p>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <h3 class="text-xs font-bold text-slate-500 mb-2">📥 データの出力・共有</h3>
+        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition flex justify-center items-center gap-2">
+          <span>📄</span> 全記録をCSVファイル出力 (LINE用)
+        </button>
+      </div>
+    </section>
+
+    <!-- タブ2: ① 明け方の祈り -->
+    <section id="sec-pray" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-indigo-900 border-b pb-2 flex items-center gap-2">
+          <span>🌅</span> ① 明け方の祈り 記録
+        </h2>
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">日付</label>
+          <input type="date" id="pray-date" class="w-full border rounded-lg p-2 text-sm font-bold bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">明け方の状況</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setPrayStatus('起きた')" id="btn-status-起きた" class="pray-status-btn border rounded-xl py-2 text-xs font-bold">起きた</button>
+            <button onclick="setPrayStatus('フォロー')" id="btn-status-フォロー" class="pray-status-btn border rounded-xl py-2 text-xs font-bold">フォロー</button>
+            <button onclick="setPrayStatus('逃した')" id="btn-status-逃した" class="pray-status-btn border rounded-xl py-2 text-xs font-bold">逃した</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">祈りの時間 (分)</label>
+          <input type="number" id="pray-time" placeholder="例: 60" class="w-full border rounded-lg p-2 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">祈りの深さ (1〜10点)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="pray-depth" min="1" max="10" value="5" class="w-full" oninput="document.getElementById('pray-depth-val').innerText = this.value">
+            <span class="font-bold text-indigo-600 text-lg w-8 text-right"><span id="pray-depth-val">5</span>点</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">祈った内容 / メモ</label>
+          <textarea id="pray-note" class="w-full border rounded-lg p-2 text-sm" rows="3" placeholder="感謝したこと、決心したこと"></textarea>
+        </div>
+
+        <button onclick="savePrayLog()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow hover:bg-indigo-700 transition">
+          祈りの記録を保存
+        </button>
+      </div>
+    </section>
+
+    <!-- タブ3: ② 講義案 -->
+    <section id="sec-lecture" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-indigo-900 border-b pb-2 flex items-center gap-2">
+          <span>📝</span> ② 講義案作成 記録
+        </h2>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">作成する講義名</label>
+          <input type="text" id="lec-name" placeholder="例: 時間の価値" class="w-full border rounded-lg p-2 text-sm font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">参考にした講義</label>
+          <input type="text" id="lec-ref" placeholder="例: 〇〇講義" class="w-full border rounded-lg p-2 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">進捗状況</label>
+          <select id="lec-status" class="w-full border rounded-lg p-2 text-sm font-bold">
+            <option value="登録のみ (25%)">登録のみ (25%)</option>
+            <option value="参考講義を視聴 (50%)">参考講義を視聴 (50%)</option>
+            <option value="作成に着手 (75%)">作成に着手 (75%)</option>
+            <option value="発表済 (100%)">発表済 (100%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">メモ</label>
+          <input type="text" id="lec-memo" placeholder="例: 構成を3部に分ける" class="w-full border rounded-lg p-2 text-sm">
+        </div>
+
+        <button onclick="saveLectureLog()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl shadow hover:bg-amber-700 transition">
+          講義案を保存・更新
+        </button>
+      </div>
+
+      <!-- 講義一覧 -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-500 mb-3">登録済みの講義リスト</h3>
+        <div id="lecture-list" class="space-y-2 text-sm">
+          <p class="text-xs text-slate-400">まだ登録がありません。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- タブ4: ③ 聖書読み -->
+    <section id="sec-bible" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-indigo-900 border-b pb-2 flex items-center gap-2">
+          <span>📖</span> ③ 聖書読み 記録
+        </h2>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">日付</label>
+          <input type="date" id="bible-date" class="w-full border rounded-lg p-2 text-sm font-bold bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">今日読んだ章数</label>
+          <input type="number" id="bible-chapters" min="0" value="4" class="w-full border rounded-lg p-2 text-center text-xl font-bold text-emerald-600">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">読んだ範囲 / メモ</label>
+          <input type="text" id="bible-range" placeholder="例: ヨシュア記 1〜4章" class="w-full border rounded-lg p-2 text-sm">
+        </div>
+
+        <button onclick="saveBibleLog()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow hover:bg-emerald-700 transition">
+          聖書読みの記録を保存
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 下部ナビゲーションバー -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 text-[11px] font-bold text-slate-400 z-50">
+    <button onclick="switchTab('dash')" id="nav-dash" class="nav-btn text-indigo-600 flex flex-col items-center py-1 flex-1">
+      <span class="text-base">📊</span>ダッシュボード
+    </button>
+    <button onclick="switchTab('pray')" id="nav-pray" class="nav-btn flex flex-col items-center py-1 flex-1">
+      <span class="text-base">🌅</span>明け方
+    </button>
+    <button onclick="switchTab('lecture')" id="nav-lecture" class="nav-btn flex flex-col items-center py-1 flex-1">
+      <span class="text-base">📝</span>講義案
+    </button>
+    <button onclick="switchTab('bible')" id="nav-bible" class="nav-btn flex flex-col items-center py-1 flex-1">
+      <span class="text-base">📖</span>聖書読み
+    </button>
+  </nav>
+
+  <script>
+    let currentUser = 'たつみ';
+    let prayStatus = '起きた';
+
+    // 初期化
+    window.onload = function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('pray-date').value = today;
+      document.getElementById('bible-date').value = today;
+      setPrayStatus('起きた');
+      refreshAll();
+    };
+
+    function changeUser(user) {
+      currentUser = user;
+      document.querySelectorAll('.user-disp').forEach(el => el.innerText = user);
+      refreshAll();
+    }
+
+    function switchTab(tab) {
+      ['dash', 'pray', 'lecture', 'bible'].forEach(t => {
+        document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (t === tab) {
+          navBtn.classList.add('text-indigo-600');
+          navBtn.classList.remove('text-slate-400');
+        } else {
+          navBtn.classList.remove('text-indigo-600');
+          navBtn.classList.add('text-slate-400');
+        }
+      });
+      refreshAll();
+    }
+
+    function setPrayStatus(st) {
+      prayStatus = st;
+      ['起きた', 'フォロー', '逃した'].forEach(s => {
+        const btn = document.getElementById(`btn-status-${s}`);
+        if (s === st) {
+          btn.className = 'pray-status-btn border rounded-xl py-2 text-xs font-bold bg-indigo-600 text-white border-indigo-600';
+        } else {
+          btn.className = 'pray-status-btn border rounded-xl py-2 text-xs font-bold bg-white text-slate-700 border-slate-200';
+        }
+      });
+    }
+
+    function getStorage(key) {
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+
+    function saveStorage(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // ① 明け方の保存
+    function savePrayLog() {
+      const logs = getStorage('pray_logs');
+      logs.push({
+        user: currentUser,
+        date: document.getElementById('pray-date').value,
+        status: prayStatus,
+        time: document.getElementById('pray-time').value || 0,
+        depth: parseInt(document.getElementById('pray-depth').value),
+        note: document.getElementById('pray-note').value
+      });
+      saveStorage('pray_logs', logs);
+      alert('明け方の祈りを保存しました！');
+      document.getElementById('pray-note').value = '';
+      refreshAll();
+    }
+
+    // ② 講義案の保存
+    function saveLectureLog() {
+      const name = document.getElementById('lec-name').value;
+      if (!name) return alert('講義名を入力してください。');
+      
+      let logs = getStorage('lecture_logs');
+      logs = logs.filter(l => !(l.user === currentUser && l.name === name)); // 上書き処理
+      logs.push({
+        user: currentUser,
+        name: name,
+        ref: document.getElementById('lec-ref').value,
+        status: document.getElementById('lec-status').value,
+        memo: document.getElementById('lec-memo').value
+      });
+      saveStorage('lecture_logs', logs);
+      alert('講義案を保存しました！');
+      document.getElementById('lec-name').value = '';
+      document.getElementById('lec-ref').value = '';
+      document.getElementById('lec-memo').value = '';
+      refreshAll();
+    }
+
+    // ③ 聖書読みの保存
+    function saveBibleLog() {
+      const logs = getStorage('bible_logs');
+      logs.push({
+        user: currentUser,
+        date: document.getElementById('bible-date').value,
+        chapters: parseInt(document.getElementById('bible-chapters').value) || 0,
+        range: document.getElementById('bible-range').value
+      });
+      saveStorage('bible_logs', logs);
+      alert('聖書読みの記録を保存しました！');
+      document.getElementById('bible-range').value = '';
+      refreshAll();
+    }
+
+    // 表示の一括更新
+    function refreshAll() {
+      // 明け方計算
+      const prayLogs = getStorage('pray_logs').filter(l => l.user === currentUser);
+      const prayDays = prayLogs.length;
+      const prayAvg = prayDays > 0 ? (prayLogs.reduce((sum, l) => sum + l.depth, 0) / prayDays).toFixed(1) : '0.0';
+      document.getElementById('dash-pray-avg').innerText = prayAvg;
+      document.getElementById('dash-pray-days').innerText = prayDays;
+
+      // 聖書計算
+      const bibleLogs = getStorage('bible_logs').filter(l => l.user === currentUser);
+      const bibleTotal = bibleLogs.reduce((sum, l) => sum + l.chapters, 0);
+      document.getElementById('dash-bible-total').innerText = bibleTotal;
+
+      // 講義計算
+      const lecLogs = getStorage('lecture_logs').filter(l => l.user === currentUser);
+      const lecDone = lecLogs.filter(l => l.status.includes('100%')).length;
+      document.getElementById('dash-lecture-done').innerText = lecDone;
+
+      // 講義リスト描画
+      const listEl = document.getElementById('lecture-list');
+      if (lecLogs.length === 0) {
+        listEl.innerHTML = '<p class="text-xs text-slate-400">まだ登録がありません。</p>';
+      } else {
+        listEl.innerHTML = lecLogs.map(l => `
+          <div class="p-2 border rounded-lg bg-slate-50 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-bold text-slate-800">${l.name}</p>
+              <p class="text-[10px] text-slate-400">${l.ref ? '参考: '+l.ref : ''} ${l.memo ? '| '+l.memo : ''}</p>
+            </div>
+            <span class="px-2 py-1 rounded bg-indigo-100 text-indigo-700 font-bold">${l.status}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // CSV出力
+    function exportCSV() {
+      const prayLogs = getStorage('pray_logs');
+      const bibleLogs = getStorage('bible_logs');
+      const lecLogs = getStorage('lecture_logs');
+
+      if (prayLogs.length === 0 && bibleLogs.length === 0 && lecLogs.length === 0) {
+        return alert('まだ保存されたデータがありません。');
+      }
+
+      let csv = "--- ① 明け方の祈り ---\n日付,ユーザー,区分,時間(分),深さ,メモ\n";
+      prayLogs.forEach(l => csv += `${l.date},${l.user},${l.status},${l.time},${l.depth},"${l.note}"\n`);
+
+      csv += "\n--- ② 講義案 ---\nユーザー,講義名,参考講義,状況,メモ\n";
+      lecLogs.forEach(l => csv += `${l.user},${l.name},"${l.ref}",${l.status},"${l.memo}"\n`);
+
+      csv += "\n--- ③ 聖書読み ---\n日付,ユーザー,読んだ章数,範囲・メモ\n";
+      bibleLogs.forEach(l => csv += `${l.date},${l.user},${l.chapters},"${l.range}"\n`);
+
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `40日トラッカー_全記録_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
