@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>修了式準備 40日トラッカー</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 pb-20">
+
+  <!-- ヘッダー / ユーザー選択 -->
+  <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+    <h1 class="text-lg font-bold">40日トラッカー</h1>
+    <div class="flex items-center gap-2">
+      <span class="text-xs bg-indigo-700 px-2 py-1 rounded">ユーザー:</span>
+      <select id="userSelect" class="bg-white text-slate-800 text-sm rounded px-2 py-1 font-bold">
+        <option value="たつみ">たつみ</option>
+        <option value="たくみ">たくみ</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-md mx-auto p-4">
+
+    <!-- タブ1: 今日の入力（明け方の祈り & 聖書） -->
+    <section id="tab-input" class="space-y-6">
+      <!-- 明け方の祈り -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h2 class="text-md font-bold text-indigo-900 border-b pb-2 mb-4 flex items-center gap-2">
+          <span>🌅</span> ① 明け方の祈り
+        </h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">区分</label>
+            <div class="grid grid-cols-3 gap-2" id="statusGroup">
+              <button onclick="setStatus('起きた')" class="status-btn border rounded-lg py-2 text-sm font-semibold hover:bg-indigo-50">起きた</button>
+              <button onclick="setStatus('フォロー')" class="status-btn border rounded-lg py-2 text-sm font-semibold hover:bg-indigo-50">フォロー</button>
+              <button onclick="setStatus('逃した')" class="status-btn border rounded-lg py-2 text-sm font-semibold hover:bg-indigo-50">逃した</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">祈りの深さ（1〜10点）</label>
+            <input type="range" id="depthInput" min="1" max="10" value="5" class="w-full" oninput="document.getElementById('depthVal').innerText = this.value">
+            <div class="text-center font-bold text-indigo-600 text-lg"><span id="depthVal">5</span> 点</div>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">祈った内容 / メモ</label>
+            <textarea id="prayNote" class="w-full border rounded-lg p-2 text-sm" rows="2" placeholder="感謝したこと、決心したことなど"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 聖書読み -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h2 class="text-md font-bold text-indigo-900 border-b pb-2 mb-4 flex items-center gap-2">
+          <span>📖</span> ③ 聖書読み
+        </h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">本日読んだ章数</label>
+            <input type="number" id="bibleChapters" min="0" value="4" class="w-full border rounded-lg p-2 text-sm font-bold text-center text-lg">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">読んだ範囲 / メモ</label>
+            <input type="text" id="bibleNote" class="w-full border rounded-lg p-2 text-sm" placeholder="例: ヨシュア記 1〜4章">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="saveTodayRecord()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 transition">
+        今日の記録を保存する
+      </button>
+    </section>
+
+    <!-- タブ2: 進捗ダッシュボード -->
+    <section id="tab-dash" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 text-center">
+        <h3 class="text-xs font-bold text-slate-400">祈りの平均深さ</h3>
+        <p id="avgDepth" class="text-4xl font-extrabold text-indigo-600 mt-1">0.0 <span class="text-sm font-normal text-slate-500">点</span></p>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 text-center">
+        <h3 class="text-xs font-bold text-slate-400">聖書 累計読破章数</h3>
+        <p id="totalBible" class="text-4xl font-extrabold text-emerald-600 mt-1">0 <span class="text-sm font-normal text-slate-500">章</span></p>
+      </div>
+
+      <!-- CSVデータ出力ボタン -->
+      <div class="pt-4">
+        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl shadow hover:bg-slate-900 transition flex justify-center items-center gap-2">
+          <span>📥</span> データをCSV出力（共有用）
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 下部ナビゲーション -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 text-xs font-bold text-slate-500">
+    <button onclick="switchTab('input')" id="nav-input" class="text-indigo-600 py-1 flex-1">記録つける</button>
+    <button onclick="switchTab('dash')" id="nav-dash" class="py-1 flex-1">ダッシュボード</button>
+  </nav>
+
+  <script>
+    let selectedStatus = '起きた';
+    let currentUser = 'たつみ';
+
+    document.getElementById('userSelect').addEventListener('change', (e) => {
+      currentUser = e.target.value;
+      loadDashboard();
+    });
+
+    function setStatus(status) {
+      selectedStatus = status;
+      document.querySelectorAll('.status-btn').forEach(btn => {
+        if (btn.innerText === status) {
+          btn.classList.add('bg-indigo-600', 'text-white');
+          btn.classList.remove('hover:bg-indigo-50');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'text-white');
+        }
+      });
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tab-input').classList.toggle('hidden', tab !== 'input');
+      document.getElementById('tab-dash').classList.toggle('hidden', tab !== 'dash');
+      document.getElementById('nav-input').classList.toggle('text-indigo-600', tab === 'input');
+      document.getElementById('nav-dash').classList.toggle('text-indigo-600', tab === 'dash');
+      if (tab === 'dash') loadDashboard();
+    }
+
+    function saveTodayRecord() {
+      const today = new Date().toISOString().split('T')[0];
+      const record = {
+        date: today,
+        user: currentUser,
+        status: selectedStatus,
+        depth: parseInt(document.getElementById('depthInput').value),
+        prayNote: document.getElementById('prayNote').value,
+        bibleChapters: parseInt(document.getElementById('bibleChapters').value) || 0,
+        bibleNote: document.getElementById('bibleNote').value
+      };
+
+      let logs = JSON.parse(localStorage.getItem('tracker_logs') || '[]');
+      logs.push(record);
+      localStorage.setItem('tracker_logs', JSON.stringify(logs));
+
+      alert(`${currentUser}さんの本日の記録を保存しました！`);
+      document.getElementById('prayNote').value = '';
+      document.getElementById('bibleNote').value = '';
+    }
+
+    function loadDashboard() {
+      let logs = JSON.parse(localStorage.getItem('tracker_logs') || '[]');
+      let userLogs = logs.filter(l => l.user === currentUser);
+
+      if (userLogs.length === 0) {
+        document.getElementById('avgDepth').innerText = '0.0';
+        document.getElementById('totalBible').innerText = '0';
+        return;
+      }
+
+      let totalDepth = userLogs.reduce((sum, l) => sum + l.depth, 0);
+      let avgDepth = (totalDepth / userLogs.length).toFixed(1);
+      let totalBible = userLogs.reduce((sum, l) => sum + l.bibleChapters, 0);
+
+      document.getElementById('avgDepth').innerText = avgDepth;
+      document.getElementById('totalBible').innerText = totalBible;
+    }
+
+    function exportCSV() {
+      let logs = JSON.parse(localStorage.getItem('tracker_logs') || '[]');
+      if (logs.length === 0) return alert('まだ記録データがありません。');
+
+      let csvStr = "日付,ユーザー,明け方区分,祈りの深さ,祈りのメモ,読んだ章数,聖書メモ\n";
+      logs.forEach(l => {
+        csvStr += `${l.date},${l.user},${l.status},${l.depth},"${l.prayNote}",${l.bibleChapters},"${l.bibleNote}"\n`;
+      });
+
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, csvStr], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `40日トラッカー記録_${currentUser}.csv`;
+      link.click();
+    }
+
+    // 初期選択状態
+    setStatus('起きた');
+  </script>
+</body>
+</html>
